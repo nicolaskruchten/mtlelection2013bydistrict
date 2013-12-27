@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.island {
+  fill: lightgrey;
+}
+
+.districts {
+  stroke: #fff;
+  stroke-linejoin: round;
+  stroke-width: 0.5;
+  opacity: 1;
+}
+
+.districtsOn {
+  opacity: 0.5;
+}
+
+
+.triangleLines {
+  stroke: #fff;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script>
+
+
+var width = 1000;
+var height = 700;
+var svg = d3.select("body").append("svg").attr("width", width).attr("height", height);
+
+var triangleSizeLength = 450;
+var triangleTLX = 100;
+var triangleTLY = 100;
+
+var x = d3.scale.linear()
+  .domain([0,1])
+  .range([triangleTLX, triangleTLX+triangleSizeLength]);
+var y = d3.scale.linear()
+  .domain([0,Math.sqrt(3)/2])
+  .range([triangleTLY, triangleTLY+Math.sqrt(3)*triangleSizeLength/2]);
+
+function triangleX(a, b, c) { return (1/2) * (2*b+c) / (a + b + c); }
+function triangleY(a, b, c) { return (Math.sqrt(3)/2) * c / (a + b + c); }
+
+var line = d3.svg.line()
+    .x(function(d) { return x(triangleX(d.a,d.b,d.c)); })
+    .y(function(d) { return y(triangleY(d.a,d.b,d.c)); });
+
+function percentages(votes) {
+  var result = {"Bergeron":0, "Joly":0, "Coderre": 0};
+  var sum = 0;
+  for(var k in result){
+    if(k in votes) {
+      var v = parseInt(votes[k]);
+      sum += v;
+      result[k] = v;
+    }
+  }
+
+  for(var k in result){
+    result[k] /= sum;
+  }
+  result.sum = sum;
+  return result;
+}
+
+function blendedColour(x) {
+  var result = percentages(x.properties);
+  return "rgb("
+    +parseInt(255*result["Coderre"])
+    +","
+    +parseInt(255*result["Bergeron"])
+    +","
+    +parseInt(255*result["Joly"])
+    +")";
+}
+
+function size(x) {
+  return Math.sqrt(percentages(x.properties).sum)/10;
+}
+
+svg.append("g").attr("class", "island")
+  .append("path")
+    .attr("d", line([
+    {a:1,b:0,c:0},
+    {a:0,b:1,c:0},
+    {a:0,b:0,c:1}
+    ]));
+
+svg.append("g").attr("class", "triangleLines")
+    .selectAll("path")
+      .data([
+        [{a:1,b:0,c:0},{a:0,b:0.5,c:0.5}],
+        [{a:0,b:1,c:0},{a:0.5,b:0,c:0.5}],
+        [{a:0,b:0,c:1},{a:0.5,b:0.5,c:0}],
+        [{a:0,b:0.5,c:0.5},{a:0.5,b:0.5,c:0}],
+        [{a:0.5,b:0,c:0.5},{a:0.5,b:0.5,c:0}],
+        [{a:0,b:0.5,c:0.5},{a:0.5,b:0,c:0.5}],
+        ])
+    .enter().append("path")
+      .attr("d", function(d){ return line(d); });
+
+d3.json("districts.topojson", function(error, mtl) {
+
+  var path = d3.geo.path()
+    .projection(
+        d3.geo.mercator()
+        .center( [(mtl.bbox[0]+mtl.bbox[2])/2 , (mtl.bbox[1]+mtl.bbox[3])/2 ] )
+        .scale(70000)
+        .translate([4*width / 6, 1.8*height / 3])
+      );
+
+  svg.append("g").attr("class", "island")
+    .selectAll("path")
+      .data(topojson.feature(mtl, mtl.objects.alldistricts).features)
+    .enter().append("path")
+      .attr("d", path);
+
+  svg.append("g").attr("class", "districts")
+    .selectAll("path")
+      .data(topojson.feature(mtl, mtl.objects.districts).features)
+    .enter().append("path")
+      .attr("d", path)
+      .attr("id", function(d) { return "polygon"+d.id;})
+      .on("mouseover", function(d) {
+        d3.select('#polygon'+d.id).attr("class", "districtsOn");
+        d3.select('#circle'+d.id).attr("class", "districtsOn");
+      })
+      .on("mouseout", function(d) {
+        d3.select('#polygon'+d.id).attr("class", "districts");
+        d3.select('#circle'+d.id).attr("class", "districts");
+      })
+      .style("fill", blendedColour);
+
+  svg.append("g").attr("class", "districts")
+    .selectAll("circle")
+      .data(topojson.feature(mtl, mtl.objects.districts).features)
+    .enter().append("circle")
+      .attr("cy", function(d) { 
+        var v= percentages(d.properties);
+        return y(triangleY(v["Coderre"],v["Bergeron"],v["Joly"])); 
+      })
+      .attr("cx", function(d) { 
+        var v= percentages(d.properties);
+        return x(triangleX(v["Coderre"],v["Bergeron"],v["Joly"])); 
+      })
+      .attr("r", size)
+      .attr("id", function(d) { return "circle"+d.id;})
+      .on("mouseover", function(d) {
+        d3.select('#polygon'+d.id).attr("class", "districtsOn");
+        d3.select('#circle'+d.id).attr("class", "districtsOn");
+      })
+      .on("mouseout", function(d) {
+        d3.select('#polygon'+d.id).attr("class", "districts");
+        d3.select('#circle'+d.id).attr("class", "districts");
+      })
+      .style("fill", blendedColour);
+
+
+
+});
+
+</script>
