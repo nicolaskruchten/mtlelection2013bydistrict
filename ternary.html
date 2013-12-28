@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font-family: Verdana;
+}
+
+.triangle {
+  fill: lightgrey;
+}
+
+.triangleLines {
+  stroke: #fff;
+}
+
+.corners {
+  font-size: 20px;
+}
+
+</style>
+<body>
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+
+var width = 600;
+var height = 600;
+var svg = d3.select("body").append("svg").attr("width", width).attr("height", height);
+
+var triangleSizeLength = 560;
+var triangleTLX = 20;
+var triangleTLY = 20;
+
+var x = d3.scale.linear()
+  .domain([0,1])
+  .range([triangleTLX, triangleTLX+triangleSizeLength]);
+var y = d3.scale.linear()
+  .domain([Math.sqrt(3)/2,0])
+  .range([triangleTLY, triangleTLY+Math.sqrt(3)*triangleSizeLength/2]);
+
+function triangleX(a, b, c) { return x(c+a/2); }
+function triangleY(a, b, c) { return y(a*Math.sqrt(3)/2); }
+
+function pointX(d){return triangleX(d.a,d.b,d.c)}
+function pointY(d){return triangleY(d.a,d.b,d.c)}
+
+
+var line = d3.svg.line().x(pointX).y(pointY);
+
+function blendedColour(d) {
+  return "rgb("
+    +parseInt(255*d.b)
+    +","
+    +parseInt(255*d.c)
+    +","
+    +parseInt(255*d.a)
+    +")";
+}
+
+function pseudoCentroid(x) {
+  var centroid = {a:0,b:0,c:0};
+  x.forEach(function(d) {
+    centroid.a += d.a/x.length;
+    centroid.b += d.b/x.length;
+    centroid.c += d.c/x.length;
+  });
+  return centroid;
+}
+
+svg.append("g").attr("class", "triangle")
+  .append("path")
+    .attr("d", line([
+    {a:1,b:0,c:0},
+    {a:0,b:1,c:0},
+    {a:0,b:0,c:1}
+    ]));
+
+svg.append("g").attr("class", "triangleLines")
+    .selectAll("path")
+      .data([
+        [{a:1,b:0,c:0},{a:0,b:0.5,c:0.5}],
+        [{a:0,b:1,c:0},{a:0.5,b:0,c:0.5}],
+        [{a:0,b:0,c:1},{a:0.5,b:0.5,c:0}],
+        [{a:0,b:0.5,c:0.5},{a:0.5,b:0.5,c:0}],
+        [{a:0.5,b:0,c:0.5},{a:0.5,b:0.5,c:0}],
+        [{a:0,b:0.5,c:0.5},{a:0.5,b:0,c:0.5}],
+        ])
+    .enter().append("path")
+      .attr("d", function(d){ return line(d); });
+
+var polygons = [];
+
+if(/twoWay/.test(window.location))
+  polygons = [
+      {label: "B beats C",
+        corners:[{a:1,b:0,c:0},{a:0,b:0.5,c:0.5},{a:0,b:1,c:0} ]  },
+      {label: "C beats B", 
+        corners:[{a:1,b:0,c:0},{a:0,b:0.5,c:0.5},{a:0,b:0,c:1} ]  },
+    ];
+
+if(/majorities/.test(window.location))
+  polygons = [
+      {label: "Majority A",
+        corners:[{a:1,b:0,c:0},{a:0.5,b:0.5,c:0},{a:0.5,b:0,c:0.5} ]  },
+      {label: "Majority B", 
+        corners:[{a:0,b:1,c:0},{a:0,b:0.5,c:0.5},{a:0.5,b:0.5,c:0} ]  },
+      {label: "Majority C",
+        corners:[{a:0,b:0,c:1},{a:0.5,b:0,c:0.5},{a:0,b:0.5,c:0.5} ]  },
+      {label: "No strict majority",
+        corners:[{a:0.5,b:0.5,c:0},{a:0.5,b:0,c:0.5},{a:0,b:0.5,c:0.5} ]  },
+    ];
+
+if(/ranks/.test(window.location))
+  polygons = [
+      {label: "ABC", 
+      corners:[{a:1,b:0,c:0},{a:1/3,b:1/3,c:1/3},{a:0.5,b:0.5,c:0} ]  },
+      {label: "ACB",
+      corners:[{a:1,b:0,c:0},{a:1/3,b:1/3,c:1/3},{a:0.5,b:0,c:0.5} ]  },
+      {label: "BAC",
+      corners:[{a:0,b:1,c:0},{a:1/3,b:1/3,c:1/3},{a:0.5,b:0.5,c:0} ]  },
+      {label: "BCA",
+      corners:[{a:0,b:1,c:0},{a:1/3,b:1/3,c:1/3},{a:0,b:0.5,c:0.5} ]  },
+      {label: "CAB",
+      corners:[{a:0,b:0,c:1},{a:1/3,b:1/3,c:1/3},{a:0.5,b:0,c:0.5} ]  },
+      {label: "CBA",
+      corners:[{a:0,b:0,c:1},{a:1/3,b:1/3,c:1/3},{a:0,b:0.5,c:0.5} ]  },
+    ];
+
+var keyPoints = []
+if(/keyPoints/.test(window.location))
+  keyPoints = [{a:0,b:0.5,c:0.5},{a:1/3,b:1/3,c:1/3},{a:0.5,b:0.25,c:0.25}]
+
+var points = svg.append("g").attr("class", "keyPoints")
+    .selectAll("path")
+      .data(keyPoints)
+    .enter().append("g");
+
+points.append("circle")
+  .attr("r", 10)
+  .attr("cx", pointX)
+  .attr("cy", pointY)
+  .style("fill", blendedColour);
+
+points.append("text")
+  .attr("x", pointX)
+  .attr("y", pointY)
+  .attr("dy", "1.5em")
+  .attr("text-anchor", "middle")
+  .text(function(d) { 
+      return "A="+(100*d.a).toFixed(0)+"%, B="+(100*d.b).toFixed(0)+"%, C="+(100*d.c).toFixed(0)+"%";
+    });
+
+
+
+var subpolygons = svg.append("g").attr("class", "triangle")
+  .selectAll("path")
+  .data(polygons)
+  .enter().append("g");
+
+subpolygons.append("path")
+    .attr("d", function(d) {return line(d.corners)})
+    .style("fill", function(d) {return blendedColour(pseudoCentroid(d.corners))});
+subpolygons.append("text")
+  .attr("x", function(d){ return pointX(pseudoCentroid(d.corners)) })
+  .attr("y", function(d){ return pointY(pseudoCentroid(d.corners)) })
+  .attr("text-anchor", "middle")
+  .style("fill", "white")
+  .text(function(d) { return d.label });;
+
+
+var points = svg.append("g").attr("class", "corners")
+    .selectAll("path")
+      .data([{a:1,b:0,c:0},{a:0,b:1,c:0},{a:0,b:0,c:1}])
+    .enter().append("g");
+
+points.append("circle")
+  .attr("r", 15)
+  .attr("cx", pointX)
+  .attr("cy", pointY)
+  .style("fill", blendedColour);
+
+points.append("text")
+  .attr("x", pointX)
+  .attr("y", pointY)
+  .attr("dy", "0.3em")
+  .attr("text-anchor", "middle")
+  .style("fill", "white")
+  .text(function(d) { 
+      for(var x in d) {
+        if(d[x] == 1) { return x.toUpperCase();}
+      }
+    });
+
+</script>

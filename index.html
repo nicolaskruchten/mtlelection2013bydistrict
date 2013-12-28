@@ -2,6 +2,11 @@
 <meta charset="utf-8">
 <style>
 
+body {
+  font-family: Verdana;
+  text-align: center;
+}
+
 .island {
   fill: lightgrey;
 }
@@ -24,6 +29,10 @@
 
 </style>
 <body>
+
+<h1 align="center">Montreal Mayoral Election 2013</h1>
+<p>Colours represent vote split between the top 3 candidates by electoral district.</p>
+
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="http://d3js.org/topojson.v1.min.js"></script>
 <script>
@@ -34,8 +43,8 @@ var height = 700;
 var svg = d3.select("body").append("svg").attr("width", width).attr("height", height);
 
 var triangleSizeLength = 450;
-var triangleTLX = 100;
-var triangleTLY = 100;
+var triangleTLX = 70;
+var triangleTLY = 70;
 
 var x = d3.scale.linear()
   .domain([0,1])
@@ -105,6 +114,23 @@ svg.append("g").attr("class", "triangleLines")
     .enter().append("path")
       .attr("d", function(d){ return line(d); });
 
+svg.append("g")
+    .selectAll("path")
+      .data([{a:1,b:0,c:0},{a:0,b:1,c:0},{a:0,b:0,c:1}])
+    .enter().append("text")
+  .attr("x", function(d) { return x(triangleX(d.a,d.b,d.c));} )
+  .attr("y", function(d) { return y(triangleY(d.a,d.b,d.c));} )
+  .attr("text-anchor", "middle")
+  .attr("dy", function(d) { 
+      if(d.a) return "-0.3em";
+      if(d.b) return "-0.3em";
+      if(d.c) return "1em";
+    })
+  .text(function(d) { 
+      if(d.a) return "Coderre";
+      if(d.b) return "Bergeron";
+      if(d.c) return "Joly";
+    });
 d3.json("districts.topojson", function(error, mtl) {
 
   var path = d3.geo.path()
@@ -112,7 +138,7 @@ d3.json("districts.topojson", function(error, mtl) {
         d3.geo.mercator()
         .center( [(mtl.bbox[0]+mtl.bbox[2])/2 , (mtl.bbox[1]+mtl.bbox[3])/2 ] )
         .scale(70000)
-        .translate([4*width / 6, 1.8*height / 3])
+        .translate([2*width/3 - 50, 1.8*height / 3])
       );
 
   svg.append("g").attr("class", "island")

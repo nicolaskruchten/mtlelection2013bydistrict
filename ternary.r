@@ -38,6 +38,6 @@ makeTernaryPlot = function (data) {
   upViewport(2)
 }
 
-pdf(file="ternary.pdf", width=10, height=10)
+png(file="ternary.png", width=900, height=900)
 makeTernaryPlot(topFour[c("Coderre", "Bergeron", "Joly")])
 dev.off()
