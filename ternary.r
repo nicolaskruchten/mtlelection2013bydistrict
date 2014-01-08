@@ -3,14 +3,15 @@ library(vcd)
 library(reshape2)
 election2013 <- read.csv("elections-2013-resultats-detailles.csv")
 melted = melt(subset(election2013, Poste == "0"))
-casted = dcast(subset(melted, variable=="Votes"), District ~ Candidat, fun.aggregate=sum)
+casted = dcast(subset(melted, variable=="Votes"), District+Bureau ~ Candidat, fun.aggregate=sum)
 topFour = casted[c("CODERRE Denis", "BERGERON Richard", "JOLY Mélanie", "CΓTÉ Marcel")]
 names(topFour) = c("Coderre", "Bergeron", "Joly", "Côté")
 
 
 makeTernaryPlot = function (data) {
   matrixData = as.matrix(data)
-  ternaryplot(matrixData[which(rowSums(matrixData) > 0),] , 
+  matrixData = matrixData[which(rowSums(matrixData) > 1),]
+  ternaryplot( matrixData, 
               main = "Electoral District Results for the 2013 Montreal Mayoral Election", 
               bg = "#eeeeee", border="grey",
               cex=sqrt(rowSums(matrixData))/50, 
