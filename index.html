@@ -31,7 +31,7 @@ body {
 <body>
 
 <h1 align="center">Montreal Mayoral Election 2013</h1>
-<p>Colours represent vote split between the top 3 candidates by electoral district.</p>
+<p>Colours represent vote split between the top 3 candidates by electoral district. <a href="http://nicolas.kruchten.com/content/2014/01/mtlelection-ternary/">See blog post for details on ternary plot &raquo;</a></p>
 
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="http://d3js.org/topojson.v1.min.js"></script>
@@ -80,12 +80,14 @@ function percentages(votes) {
 
 function blendedColour(x) {
   var result = percentages(x.properties);
+  var max = Math.max(result["Coderre"],result["Bergeron"],result["Joly"])
+  var m = 255/Math.pow(max, 0.5);
   return "rgb("
-    +parseInt(255*result["Coderre"])
+    +parseInt(m*result["Coderre"])
     +","
-    +parseInt(255*result["Bergeron"])
+    +parseInt(m*result["Bergeron"])
     +","
-    +parseInt(255*result["Joly"])
+    +parseInt(m*result["Joly"])
     +")";
 }
 

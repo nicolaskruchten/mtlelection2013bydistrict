@@ -50,12 +50,14 @@ function pointY(d){return triangleY(d.a,d.b,d.c)}
 var line = d3.svg.line().x(pointX).y(pointY);
 
 function blendedColour(d) {
+  var max = Math.max(d.a,d.b,d.c)
+  var m = 255/Math.pow(max, 0.5);
   return "rgb("
-    +parseInt(255*d.b)
+    +parseInt(m*d.b)
     +","
-    +parseInt(255*d.c)
+    +parseInt(m*d.c)
     +","
-    +parseInt(255*d.a)
+    +parseInt(m*d.a)
     +")";
 }
 
@@ -92,7 +94,7 @@ svg.append("g").attr("class", "triangleLines")
 
 var polygons = [];
 
-if(/twoWay/.test(window.location))
+if(/twoWay/.test(window.location.hash))
   polygons = [
       {label: "B beats C",
         corners:[{a:1,b:0,c:0},{a:0,b:0.5,c:0.5},{a:0,b:1,c:0} ]  },
@@ -126,6 +128,34 @@ if(/ranks/.test(window.location))
       corners:[{a:0,b:0,c:1},{a:1/3,b:1/3,c:1/3},{a:0.5,b:0,c:0.5} ]  },
       {label: "CBA",
       corners:[{a:0,b:0,c:1},{a:1/3,b:1/3,c:1/3},{a:0,b:0.5,c:0.5} ]  },
+    ];
+
+if(/full/.test(window.location))
+  polygons = [
+      {label: "Abc", 
+      corners:[{a:1,b:0,c:0},{a:1/2,b:1/4,c:1/4},{a:0.5,b:0.5,c:0} ]  },
+      {label: "Acb",
+      corners:[{a:1,b:0,c:0},{a:1/2,b:1/4,c:1/4},{a:0.5,b:0,c:0.5} ]  },
+      {label: "abc", 
+      corners:[{a:1/3,b:1/3,c:1/3},{a:1/2,b:1/4,c:1/4},{a:0.5,b:0.5,c:0} ]  },
+      {label: "acb",
+      corners:[{a:1/3,b:1/3,c:1/3},{a:1/2,b:1/4,c:1/4},{a:0.5,b:0,c:0.5} ]  },
+      {label: "Bac",
+      corners:[{a:0,b:1,c:0},{a:1/4,b:1/2,c:1/4},{a:0.5,b:0.5,c:0} ]  },
+      {label: "Bca",
+      corners:[{a:0,b:1,c:0},{a:1/4,b:1/2,c:1/4},{a:0,b:0.5,c:0.5} ]  },
+      {label: "bac",
+      corners:[{a:1/3,b:1/3,c:1/3},{a:1/4,b:1/2,c:1/4},{a:0.5,b:0.5,c:0} ]  },
+      {label: "bca",
+      corners:[{a:1/3,b:1/3,c:1/3},{a:1/4,b:1/2,c:1/4},{a:0,b:0.5,c:0.5} ]  },
+      {label: "Cab",
+      corners:[{a:0,b:0,c:1},{a:1/4,b:1/4,c:1/2},{a:0.5,b:0,c:0.5} ]  },
+      {label: "Cba",
+      corners:[{a:0,b:0,c:1},{a:1/4,b:1/4,c:1/2},{a:0,b:0.5,c:0.5} ]  },
+      {label: "cab",
+      corners:[{a:1/3,b:1/3,c:1/3},{a:1/4,b:1/4,c:1/2},{a:0.5,b:0,c:0.5} ]  },
+      {label: "cba",
+      corners:[{a:1/3,b:1/3,c:1/3},{a:1/4,b:1/4,c:1/2},{a:0,b:0.5,c:0.5} ]  },
     ];
 
 var keyPoints = []
