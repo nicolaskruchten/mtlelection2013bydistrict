@@ -19,7 +19,8 @@ body {
 }
 
 .districtsOn {
-  opacity: 0.5;
+  stroke: #000;
+  stroke-width: 2;
 }
 
 
@@ -142,6 +143,14 @@ d3.json("districts.topojson", function(error, mtl) {
         .scale(70000)
         .translate([2*width/3 - 50, 1.8*height / 3])
       );
+  svg.selectAll(".title")
+    .data([""])
+    .enter().append("text")
+      .attr("class", "title")
+      .attr("transform", function(d) { return "translate("+(50+width/2)+","+height/2+")" })
+      .attr("id", "boroughname")
+      .text(function(d) { return d; })
+      .style("text-anchor", "middle");
 
   svg.append("g").attr("class", "island")
     .selectAll("path")
@@ -149,20 +158,29 @@ d3.json("districts.topojson", function(error, mtl) {
     .enter().append("path")
       .attr("d", path);
 
+  function mouseOver(d) {
+        var polyNode = d3.select('#polygon'+d.id).node();
+        polyNode.parentNode.appendChild(polyNode);
+        var circleNode = d3.select('#circle'+d.id).node();
+        circleNode.parentNode.appendChild(circleNode);
+        d3.select('#polygon'+d.id).attr("class", "districtsOn");
+        d3.select('#circle'+d.id).attr("class", "districtsOn");
+        d3.select('#boroughname').text(d.properties.NOM_DISTRICT);
+  }
+  function mouseOut(d) {
+        d3.select('#polygon'+d.id).attr("class", "districts");
+        d3.select('#circle'+d.id).attr("class", "districts");
+        d3.select('#boroughname').text("");
+  }
+
   svg.append("g").attr("class", "districts")
     .selectAll("path")
       .data(topojson.feature(mtl, mtl.objects.districts).features)
     .enter().append("path")
       .attr("d", path)
       .attr("id", function(d) { return "polygon"+d.id;})
-      .on("mouseover", function(d) {
-        d3.select('#polygon'+d.id).attr("class", "districtsOn");
-        d3.select('#circle'+d.id).attr("class", "districtsOn");
-      })
-      .on("mouseout", function(d) {
-        d3.select('#polygon'+d.id).attr("class", "districts");
-        d3.select('#circle'+d.id).attr("class", "districts");
-      })
+      .on("mouseover", mouseOver)
+      .on("mouseout", mouseOut)
       .style("fill", blendedColour);
 
   svg.append("g").attr("class", "districts")
@@ -179,14 +197,8 @@ d3.json("districts.topojson", function(error, mtl) {
       })
       .attr("r", size)
       .attr("id", function(d) { return "circle"+d.id;})
-      .on("mouseover", function(d) {
-        d3.select('#polygon'+d.id).attr("class", "districtsOn");
-        d3.select('#circle'+d.id).attr("class", "districtsOn");
-      })
-      .on("mouseout", function(d) {
-        d3.select('#polygon'+d.id).attr("class", "districts");
-        d3.select('#circle'+d.id).attr("class", "districts");
-      })
+      .on("mouseover", mouseOver)
+      .on("mouseout", mouseOut)
       .style("fill", blendedColour);
 
 
